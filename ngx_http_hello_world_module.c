@@ -73,7 +73,6 @@ static ngx_int_t ngx_http_hello_world_init_shm_zone(ngx_shm_zone_t *shm_zone, vo
 static ngx_int_t ngx_http_hello_world_handler(ngx_http_request_t* r){
   ngx_http_hello_world_loc_conf_t *lccf;
   ngx_shm_zone_t *shm_zone;
-  ngx_slab_pool_t *shpool;
   int count;
   ngx_int_t rc;
   ngx_buf_t* b;
@@ -86,19 +85,15 @@ static ngx_int_t ngx_http_hello_world_handler(ngx_http_request_t* r){
   }
   shm_zone = lccf->shm_zone;
 
-  shpool = (ngx_slab_pool_t *) lccf->shm_zone->shm.addr;
-  ngx_shmtx_lock(&shpool->mutex);
   count = ((ngx_http_hello_world_shm_count_t *)shm_zone->data)->count;
   count = count+1;
   ((ngx_http_hello_world_shm_count_t *)shm_zone->data)->count = count;
-  ngx_shmtx_unlock(&shpool->mutex);
 
   
   r->headers_out.content_type.len = sizeof("text/plain") - 1;
   r->headers_out.content_type.data = (u_char*)"text/plain";
 
   b = ngx_pcalloc(r->pool, sizeof(ngx_buf_t));
-  /*  */
   out.buf = b;
   out.next = NULL;
   char string[10];
