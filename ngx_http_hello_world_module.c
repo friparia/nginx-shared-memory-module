@@ -158,7 +158,6 @@ static char* ngx_http_hello_world_merge_loc_conf(ngx_conf_t* cf, void* parent, v
   }
 
   shm_zone->init = ngx_http_hello_world_init_shm_zone;
-  shm_zone = ngx_shared_memory_add(cf, shm_name, 0, &ngx_http_hello_world_module);
   conf->shm_zone = shm_zone;
 
   ngx_conf_merge_ptr_value(conf->shm_zone, prev->shm_zone, NULL);
