@@ -123,20 +123,7 @@ static ngx_int_t ngx_http_hello_world_handler(ngx_http_request_t* r){
 }
 
 static char* ngx_http_hello_world(ngx_conf_t* cf, ngx_command_t* cmd, void* conf){
-  ngx_shm_zone_t *shm_zone;
-  ngx_str_t *shm_name;
   ngx_http_core_loc_conf_t *clcf;
-
-  shm_name = ngx_palloc(cf->pool, sizeof *shm_name);
-  shm_name->len = sizeof("shared_memory") - 1;
-  shm_name->data = (unsigned char *) "shared_memory";
-  shm_zone = ngx_shared_memory_add(cf, shm_name, 8 * ngx_pagesize, &ngx_http_hello_world_module);
-
-  if(shm_zone == NULL){
-    return NGX_CONF_ERROR;
-  }
-
-  shm_zone->init = ngx_http_hello_world_init_shm_zone;
 
   clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
   clcf->handler = ngx_http_hello_world_handler;
@@ -156,16 +143,25 @@ static void* ngx_http_hello_world_create_loc_conf(ngx_conf_t* cf){
 }
 
 static char* ngx_http_hello_world_merge_loc_conf(ngx_conf_t* cf, void* parent, void* child){
-  ngx_shm_zone_t                       *shm_zone;
+  ngx_shm_zone_t *shm_zone;
   ngx_str_t *shm_name;
   ngx_http_hello_world_loc_conf_t* prev = parent;
   ngx_http_hello_world_loc_conf_t* conf = child;
-  ngx_conf_merge_ptr_value(conf->shm_zone, prev->shm_zone, NULL);
+
   shm_name = ngx_palloc(cf->pool, sizeof *shm_name);
   shm_name->len = sizeof("shared_memory") - 1;
   shm_name->data = (unsigned char *) "shared_memory";
+  shm_zone = ngx_shared_memory_add(cf, shm_name, 8 * ngx_pagesize, &ngx_http_hello_world_module);
+
+  if(shm_zone == NULL){
+    return NGX_CONF_ERROR;
+  }
+
+  shm_zone->init = ngx_http_hello_world_init_shm_zone;
   shm_zone = ngx_shared_memory_add(cf, shm_name, 0, &ngx_http_hello_world_module);
   conf->shm_zone = shm_zone;
+
+  ngx_conf_merge_ptr_value(conf->shm_zone, prev->shm_zone, NULL);
   return NGX_CONF_OK;
 }
 
